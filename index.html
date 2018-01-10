@@ -1,0 +1,348 @@
+<canvas style="display: block; margin: auto;"></canvas>
+<script type="text/javascript">
+const CE = document.querySelector('canvas');
+const size = Math.min(window.innerWidth, window.innerHeight)-10;
+// CE.style.width=size;
+// CE.style.height=size;
+CE.width=400;
+CE.height=400;//CE.width;
+const canvas = CE.getContext('2d');
+
+let score = 0;
+let highScore =0;
+
+const pw = CE.width/25;
+let px = 0;
+let py = 0;
+let x1 = 0;
+let y1 = 0;
+let angle=0;
+let angle2=0;
+let tangle=0;
+let tangle2=0;
+const maxBalls=30;
+let roundGrabs = 1;
+let grabbable=roundGrabs;
+
+const cx = CE.width/2;
+const cy = CE.height/2;
+const pr = CE.width/4;
+const buffer = 2;
+
+const balls = [];
+let grabbed;
+
+let numBalls=3;
+
+const particles = [];
+let frameCount=0;
+
+function addBall(){
+	const br = CE.width/40+(maxBalls-numBalls)*CE.width/60/maxBalls;
+	const angle = Math.random()*Math.PI*2;
+	const r = br+(CE.width/2-br*2) * (Math.random()*.8+.2);
+	const x=CE.width/2 + r* Math.cos(angle);
+	const y=CE.height/2+ r* Math.sin(angle);
+	for(let i=0;i<balls.length;i++){
+		const b = balls[i];
+		if(Math.abs(b.x-x)<b.r+br&&Math.abs(b.y-y)<b.r+br){
+			return addBall();
+		}
+	}
+	balls.push({x,y,sx:x,sy:y, r:br});
+}
+canvas.font="40px Impact";
+canvas.textAlign="center";
+function drawTimer(time, total){
+	const x=CE.width/2;
+	const y=CE.height/2;
+	const r=CE.width/10;
+	// canvas.fillStyle="black";
+	// canvas.beginPath();
+	// canvas.arc(x,y,r,0,Math.PI*2);
+	// canvas.fill();
+	canvas.fillStyle="#ddd";
+	if(time>total/2)
+	{
+		let d = 30;//(total-time);
+		if(time>total*3/4)d=15;
+		if(time%d>d/2)
+		canvas.fillStyle="#f00";
+	}
+	canvas.beginPath();
+	// canvas.moveTo(x,y);
+	// canvas.arc(x,y,r, Math.PI*2*(time/total)-Math.PI/2,-Math.PI/2);
+	canvas.arc(x,y, pw/2+r*(1-time/total), 0, Math.PI*2);
+	// canvas.arc(x,y,r*(1-time/total), Math.PI*2*(time/total)-Math.PI/2,-Math.PI/2);
+	// canvas.lineTo(x,y);
+	canvas.fill();
+
+	// canvas.strokeStyle="#ddd";
+	// canvas.lineWidth=CE.width/2*(time/total);
+	// canvas.beginPath();
+	// canvas.arc(x,y,CE.width/2-canvas.lineWidth/2, 0,Math.PI*2);
+	// canvas.arc(x,y,CE.width/2*(1-time/total), 0, Math.PI*2);
+	// canvas.stroke();
+}
+function draw(){
+	const cx = CE.width/2;
+	const cy = CE.height/2;
+	canvas.fillStyle = "black";
+	canvas.fillRect(0,0,CE.width, CE.height);
+	drawTimer(timer,timet);
+	canvas.fillStyle="#fff";
+	canvas.strokeStyle="#d00";
+	canvas.lineWidth=3;
+	for(let i=0;i<balls.length;i++){
+		const b = balls[i];
+		if(i==grabbable)canvas.fillStyle = "#e22";
+		else if(i==grabbable+1)canvas.fillStyle = "#a00";
+
+		// else if(i==3)canvas.fillStyle = "#900";
+		// const a = 1-i/balls.length;
+		// canvas.globalAlpha = Math.max(.5,a);
+		canvas.beginPath();
+		canvas.arc(b.x,b.y,b.r, 0,2*Math.PI);
+		// canvas.rect(b.x-b.r,b.y-b.r, b.r*2, b.r*2);
+		if(i>buffer&&i>balls.length-buffer-1){
+			// canvas.strokeStyle="#d00";
+			canvas.stroke();
+			continue;
+		}
+		canvas.fill();
+		if(i<grabbable&&!grabbed){
+			canvas.beginPath();
+			canvas.strokeStyle="#fff";
+			canvas.arc(b.x,b.y,b.r*1.4+Math.cos(frameCount*Math.PI/40)/2, 0,2*Math.PI);
+			canvas.stroke();
+			canvas.strokeStyle="#d00";
+		}
+		// canvas.fillText((i+1), b.x,b.y+10, 20, 20);
+	};
+	canvas.globalAlpha=1;
+	canvas.fillStyle="white";
+	canvas.fillText(score, 40,40,100,100);
+	canvas.fillText(highScore, CE.width-40,40,100,100);
+
+	canvas.strokeStyle="white";
+	canvas.lineWidth=pw;
+	canvas.lineCap="round";
+	canvas.beginPath();
+	canvas.moveTo(cx, cy);
+	// canvas.lineTo(cx+r*Math.cos(angle), cy+r*Math.sin(angle));
+	canvas.lineTo(x1,y1);
+	// canvas.stroke();
+	// canvas.beginPath();
+	canvas.moveTo(x1,y1);
+	canvas.lineTo(px,py);
+	canvas.stroke();
+
+	if(score==0)canvas.fillStyle="red";
+	else canvas.fillStyle="#fff";
+	canvas.beginPath();
+	for(let i=0;i<particles.length;i++){
+		const p = particles[i];
+		p.x+=p.vx;
+		p.y+=p.vy;
+		p.vy+=.1;
+		canvas.moveTo(p.x,p.y);
+		const r = Math.max(p.r, 5);
+		canvas.arc(p.x,p.y,r,0,Math.PI*2);
+		p.r-=1;
+		if(p.r<=0){
+			particles.splice(i,1);
+			i--;
+		}
+	}
+	canvas.fill();
+
+	// canvas.fillStyle="#0ff";
+	// canvas.beginPath();
+	// canvas.arc(mx,my,20,0,Math.PI*2);
+	// canvas.fill();
+
+}
+function particleSplode(x,y){
+	for(let i=0;i<10;i++){
+		particles.push({
+			x,y, vx: (.5-Math.random())*4, vy: (.5-Math.random())*4-1, r:20+Math.random()*10,
+		})
+	}
+}
+function update(){
+	frameCount++;
+	// if(score==0&&particles.length>0){
+		// angle+=Math.sin(frameCount*Math.PI/4)/60;
+		// angle2+=Math.cos(frameCount*Math.PI/2)/60;
+
+		// angle += (tangle-angle)/20;
+		// angle2+= (tangle2-angle2)/20;
+	// }else
+	{
+		angle += (tangle-angle)/5;
+		angle2+= (tangle2-angle2)/5;
+	}
+	const r=pr;
+	x1 = cx+r*Math.cos(angle);
+	y1 = cy+r*Math.sin(angle);
+	px = x1+r*Math.cos(angle2);
+	py = y1+r*Math.sin(angle2);
+
+	// if(!grabbed)
+	for(let i=0;i<balls.length;i++){
+		if(i>buffer&&i>balls.length-buffer-1)break;
+		const b=balls[i];
+		if(Math.abs(b.x-px)<b.r&&Math.abs(b.y-py)<b.r){
+			if(!grabbed||i>=grabbable)
+				particleSplode(px,py);
+			if(score==0)score=1;
+			grabbed=b;
+			if(i>=grabbable){
+				lose();
+				// particleSplode(px,py);
+			}
+		}
+	};
+	if(grabbed){
+		grabbed.x=px;
+		grabbed.y=py;
+		if(Math.abs(grabbed.x-cx)<20 && Math.abs(grabbed.y-cy)<20){
+			balls.splice(balls.indexOf(grabbed), 1);
+			balls[0].r++;
+			grabbable--;
+			if(grabbable<=0){
+				grabbable=roundGrabs;
+				timer=0;
+
+				if(score%1==0&&balls.length<maxBalls){
+					numBalls++;
+				}
+			}
+			particleSplode(px,py);
+			// balls.forEach(function(e){
+			// 	e.r+=-CE.width/50/20;
+			// })
+			score++;
+
+			grabbed=null;
+			// numBalls++;
+		}
+	}
+	while(balls.length<numBalls){
+		addBall();
+	}
+
+	draw();
+}
+let locked=false;
+window.addEventListener('click', function(e){
+	const canvasElement=CE;
+	canvasElement.requestPointerLock = canvasElement.requestPointerLock ||
+			     canvasElement.mozRequestPointerLock ||
+			     canvasElement.webkitRequestPointerLock;
+	// Ask the browser to lock the pointer
+	canvasElement.requestPointerLock();
+	locked=true;
+})
+let mx=0;
+let my=0;
+window.addEventListener('mousemove', function(e){
+	if(locked){
+		 const movementX = e.movementX ||
+	      e.mozMovementX          ||
+	      e.webkitMovementX       ||
+	      0,
+	 	 movementY = e.movementY ||
+	      e.mozMovementY      ||
+	      e.webkitMovementY   ||
+	      0;
+
+		mx+=movementX;
+		my+=movementY;
+		tangle+=movementX/CE.width*Math.PI;
+		tangle2+=movementY/CE.height*Math.PI+movementX/CE.width*Math.PI;
+		return
+	  }
+	const rect = CE.getBoundingClientRect();
+	// let x = mx;
+	// let y = my;
+	let x = e.clientX-rect.left;
+	let y = e.clientY-rect.top;
+	// if(x<0)return x=0;
+	// if(x>CE.width)return x=CE.width;
+	// if(y<0)return y=0;
+	// if(y>CE.height)return y=CE.height;
+
+	// canvas.lineCap = "round";
+	tangle = x*Math.PI*2/CE.width+Math.PI/2;
+	tangle2 =y*Math.PI*2/CE.height+angle;
+	
+
+	
+	return;
+
+	canvas.strokeStyle="white";
+	canvas.beginPath();
+	canvas.lineWidth=1;
+	canvas.moveTo(cx,0);
+	canvas.lineTo(cx,CE.height);
+	canvas.moveTo(0,cy);
+	canvas.lineTo(CE.width,cy);
+	canvas.stroke();
+
+	canvas.strokeStyle="green";
+	canvas.lineWidth=1+(1-Math.abs(y-cy)/cy)*2;
+	canvas.beginPath();
+	canvas.moveTo(x,cy);
+	canvas.lineTo(x,y);
+	canvas.stroke();
+	canvas.beginPath();
+	// canvas.moveTo(x1,y1);
+	if(y<cy)canvas.arc(x1,y1, r/5, angle2, angle-Math.PI);
+	else canvas.arc(x1,y1,r/5, angle+Math.PI, angle2);
+	// canvas.moveTo(cx,cy);
+	// canvas.lineTo(px,py);
+	canvas.stroke();
+
+	canvas.strokeStyle="blue";
+	canvas.lineWidth=1+(Math.abs(x-cx)/cx)*2;
+	canvas.beginPath();
+	canvas.moveTo(cx,y);
+	canvas.lineTo(x,y);
+	canvas.stroke();
+	canvas.fillStyle='blue';
+	canvas.beginPath();
+	// canvas.moveTo(cx,cy);
+	if(x<cx) canvas.arc(cx,cy, r/5, angle, -Math.PI/2);
+	else canvas.arc(cx,cy, r/5, Math.PI*3/2, angle)
+	// canvas.lineTo(cx,cy);
+	// canvas.fill();
+	canvas.stroke();
+
+})
+setInterval(update, 1000/60);
+let timer=0;
+let timet=75*6*2;
+setInterval(function(){
+	if(score==0)return;
+	timer++;
+	if(timer>=timet){
+		lose();
+		particleSplode(cx,cy);
+	}
+	// draw();
+	// drawTimer(timer, timet);
+}, 1000/60);
+function lose(){
+	timer=0;
+	if(score>highScore)highScore=score;
+	score=0;
+	balls.splice(0,balls.length);
+	balls.length=0;
+	grabbed=null;
+	numBalls=3;
+}
+
+numBalls=3;
+draw();
+</script>
