@@ -19,12 +19,10 @@ function motion(event){
     + event.accelerationIncludingGravity.z
   );
 	if(event.accelerationIncludingGravity.x) {
-		mx+=event.accelerationIncludingGravity.x;
-		tangle+=movementX/CE.width*Math.PI;
+		tangle = event.accelerationIncludingGravity.x;
 	}
-	if(event.accelerationIncludingGravity.y) {
-		my+=event.accelerationIncludingGravity.y;
-		tangle2+=movementY/CE.height*Math.PI+movementX/CE.width*Math.PI;		
+	if(event.accelerationIncludingGravity.z) {
+		tangle2 = event.accelerationIncludingGravity.z;
 	}
 }
 const CE = document.querySelector('canvas');
