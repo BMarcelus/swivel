@@ -15,7 +15,7 @@ if(window.DeviceMotionEvent){
 
 function motion(event){
 	if(event.accelerationIncludingGravity.x) {
-		tangle = event.accelerationIncludingGravity.x;
+		tangle += (event.accelerationIncludingGravity.x-tangle)/10;
 	}
 	if(event.accelerationIncludingGravity.z) {
 
