@@ -13,11 +13,6 @@ if(window.DeviceMotionEvent){
 }
 
 function motion(event){
-  console.log("Accelerometer: "
-    + event.accelerationIncludingGravity.x + ", "
-    + event.accelerationIncludingGravity.y + ", "
-    + event.accelerationIncludingGravity.z
-  );
 	if(event.accelerationIncludingGravity.x) {
 		tangle = event.accelerationIncludingGravity.x;
 	}
@@ -109,12 +104,40 @@ function drawTimer(time, total){
 	// canvas.arc(x,y,CE.width/2*(1-time/total), 0, Math.PI*2);
 	// canvas.stroke();
 }
+function drawArrow() {
+	canvas.fillStyle='white';
+	const x = CE.width/2;
+	const y = CE.height/2;
+	const r = CE.width/30+Math.cos(frameCount*Math.PI/20)*5;
+	const w = CE.width/25;
+	const h = CE.width/20;
+	var t = tangle;
+	var t2 = tangle2;
+	var da = (tangle-tangle2);
+	var ah = 20;
+	// while(da>Math.PI*2) da-=Math.PI*2;
+	var angle = tangle + (Math.PI-(da))/2;
+	//  angle += Math.PI;
+	canvas.save();
+	canvas.translate(x,y);
+	canvas.rotate(angle);
+	canvas.fillRect(-w/2,r+ah-1,w,h);
+	canvas.beginPath();
+	canvas.moveTo(-w/2-10, r+ah);
+	canvas.lineTo(w/2+10, r+ah);
+	canvas.lineTo(0, r);
+	canvas.fill();
+	canvas.restore();
+}
 function draw(){
 	const cx = CE.width/2;
 	const cy = CE.height/2;
 	canvas.fillStyle = "black";
 	canvas.fillRect(0,0,CE.width, CE.height);
 	drawTimer(timer,timet);
+	if(grabbed&&score<3) {
+		drawArrow();
+	}
 	canvas.fillStyle="#fff";
 	canvas.strokeStyle="#d00";
 	canvas.lineWidth=3;
