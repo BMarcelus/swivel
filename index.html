@@ -17,7 +17,8 @@ function motion(event){
 		tangle = event.accelerationIncludingGravity.x;
 	}
 	if(event.acceleration.z) {
-		tangle2 = event.acceleration.z;
+		// my+=event.acceleration.z;
+		tangle2+=event.acceleration.z;
 	}
 }
 const CE = document.querySelector('canvas');
