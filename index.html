@@ -22,8 +22,8 @@ function motion(event){
 		mx+=event.accelerationIncludingGravity.x;
 		tangle+=movementX/CE.width*Math.PI;
 	}
-	if(event.accelerationIncludingGravity.y) {
-		my+=event.accelerationIncludingGravity.y;
+	if(event.accelerationIncludingGravity.z) {
+		my+=event.accelerationIncludingGravity.z;
 		tangle2+=movementY/CE.height*Math.PI+movementX/CE.width*Math.PI;		
 	}
 }
