@@ -1,9 +1,34 @@
-<canvas style="display: block; margin: auto;"></canvas>
+<style>
+	canvas {
+		display: block;
+		margin: auto;
+	}
+</style>
+<canvas ></canvas>
 <script type="text/javascript">
+if(window.DeviceMotionEvent){
+  window.addEventListener("devicemotion", motion, false);
+}else{
+  console.log("DeviceMotionEvent is not supported");
+}
+
+function motion(event){
+  console.log("Accelerometer: "
+    + event.accelerationIncludingGravity.x + ", "
+    + event.accelerationIncludingGravity.y + ", "
+    + event.accelerationIncludingGravity.z
+  );
+	if(event.accelerationIncludingGravity.x) {
+		tangle = event.accelerationIncludingGravity.x;
+	}
+	if(event.accelerationIncludingGravity.y) {
+		tangle = event.accelerationIncludingGravity.y;
+	}
+}
 const CE = document.querySelector('canvas');
-const size = Math.min(window.innerWidth, window.innerHeight)-10;
-// CE.style.width=size;
-// CE.style.height=size;
+var size = Math.min(window.innerWidth, window.innerHeight)-10;
+CE.style.width=size;
+CE.style.height=size;
 CE.width=400;
 CE.height=400;//CE.width;
 const canvas = CE.getContext('2d');
