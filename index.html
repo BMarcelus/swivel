@@ -16,8 +16,8 @@ function motion(event){
 	if(event.accelerationIncludingGravity.x) {
 		tangle = event.accelerationIncludingGravity.x;
 	}
-	if(event.accelerationIncludingGravity.z) {
-		tangle2 = event.accelerationIncludingGravity.z;
+	if(event.acceleration.z) {
+		tangle2 = event.acceleration.z;
 	}
 }
 const CE = document.querySelector('canvas');
