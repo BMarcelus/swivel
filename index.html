@@ -14,12 +14,12 @@ if(window.DeviceMotionEvent){
 
 
 function motion(event){
-	if(event.accelerationIncludingGravity.x) {
-		tangle += (event.accelerationIncludingGravity.x-tangle)/10;
+	if(event.acceleration.x) {
+		tangle += (event.acceleration.x-tangle)/10;
 	}
-	if(event.accelerationIncludingGravity.z) {
+	if(event.acceleration.z) {
 
-		tangle2+= (event.accelerationIncludingGravity.z-tangle2)/10;
+		tangle2+= (event.acceleration.z-tangle2)/10;
 	}
 }
 const CE = document.querySelector('canvas');
