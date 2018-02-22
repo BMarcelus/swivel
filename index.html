@@ -45,6 +45,8 @@ let tangle2=0;
 const maxBalls=30;
 let roundGrabs = 1;
 let grabbable=roundGrabs;
+let losing = false;
+let displayText = "";
 
 const cx = CE.width/2;
 const cy = CE.height/2;
@@ -146,7 +148,7 @@ function draw(){
 	for(let i=0;i<balls.length;i++){
 		const b = balls[i];
 		if(i==grabbable)canvas.fillStyle = "#e22";
-		else if(i==grabbable+1)canvas.fillStyle = "#a00";
+		else if(i==grabbable+roundGrabs)canvas.fillStyle = "#a00";
 
 		// else if(i==3)canvas.fillStyle = "#900";
 		// const a = 1-i/balls.length;
@@ -187,7 +189,7 @@ function draw(){
 	canvas.lineTo(px,py);
 	canvas.stroke();
 
-	if(score==0)canvas.fillStyle="red";
+	if(losing)canvas.fillStyle="red";
 	else canvas.fillStyle="#fff";
 	canvas.beginPath();
 	for(let i=0;i<particles.length;i++){
@@ -210,7 +212,13 @@ function draw(){
 	// canvas.beginPath();
 	// canvas.arc(mx,my,20,0,Math.PI*2);
 	// canvas.fill();
-
+	if(losing) {
+		// if(frameCount%30<15) canvas.fillStyle = "red";
+		// else canvas.fillStyle="white";
+		canvas.fillStyle = "red";
+		canvas.fillText("Game Over", cx, cy-50);
+		canvas.fillText(displayText, cx, cy);
+	}
 }
 function particleSplode(x,y){
 	for(let i=0;i<10;i++){
@@ -228,6 +236,7 @@ function update(){
 		// angle += (tangle-angle)/20;
 		// angle2+= (tangle2-angle2)/20;
 	// }else
+	if(!losing)
 	{
 		angle += (tangle-angle)/5;
 		angle2+= (tangle2-angle2)/5;
@@ -239,6 +248,7 @@ function update(){
 	py = y1+r*Math.sin(angle2);
 
 	// if(!grabbed)
+	if(!losing)
 	for(let i=0;i<balls.length;i++){
 		if(i>buffer&&i>balls.length-buffer-1)break;
 		const b=balls[i];
@@ -249,7 +259,7 @@ function update(){
 			grabbed=b;
 			if(i>=grabbable){
 				lose();
-				// particleSplode(px,py);
+				particleSplode(px,py);
 			}
 		}
 	};
@@ -260,11 +270,13 @@ function update(){
 			balls.splice(balls.indexOf(grabbed), 1);
 			balls[0].r++;
 			grabbable--;
+			timer -= timer/10;
 			if(grabbable<=0){
+				roundGrabs = Math.floor(score/10) % 10 + 1;
 				grabbable=roundGrabs;
 				timer=0;
 
-				if(score%1==0&&balls.length<maxBalls){
+				if(score%2==0&&balls.length<maxBalls){
 					numBalls++;
 				}
 			}
@@ -298,6 +310,7 @@ let mx=0;
 let my=0;
 window.addEventListener('mousemove', function(e){
 	if(locked){
+		if(losing)return;
 		 const movementX = e.movementX ||
 	      e.mozMovementX          ||
 	      e.webkitMovementX       ||
@@ -306,12 +319,12 @@ window.addEventListener('mousemove', function(e){
 	      e.mozMovementY      ||
 	      e.webkitMovementY   ||
 	      0;
-
+		
 		mx+=movementX;
 		my+=movementY;
 		tangle+=movementX/CE.width*Math.PI;
 		tangle2+=movementY/CE.height*Math.PI+movementX/CE.width*Math.PI;
-		return
+		return;
 	  }
 	const rect = CE.getBoundingClientRect();
 	// let x = mx;
@@ -364,17 +377,17 @@ window.addEventListener('mousemove', function(e){
 	canvas.beginPath();
 	// canvas.moveTo(cx,cy);
 	if(x<cx) canvas.arc(cx,cy, r/5, angle, -Math.PI/2);
-	else canvas.arc(cx,cy, r/5, Math.PI*3/2, angle)
+	else canvas.arc(cx,cy, r/5, Math.PI*3/2, angle);
 	// canvas.lineTo(cx,cy);
 	// canvas.fill();
 	canvas.stroke();
 
 })
-setInterval(update, 1000/60);
+var updateInterval = setInterval(update, 1000/60);
 let timer=0;
 let timet=75*6*2;
-setInterval(function(){
-	if(score==0)return;
+setInterval(function() {
+	if(score==0||losing)return;
 	timer++;
 	if(timer>=timet){
 		lose();
@@ -383,16 +396,50 @@ setInterval(function(){
 	// draw();
 	// drawTimer(timer, timet);
 }, 1000/60);
-function lose(){
-	timer=0;
+function lose() {
 	if(score>highScore)highScore=score;
+	displayText = "You Lost";
+	var displayScore = score;
+	losing = true;
+	// setTimeout(() => {
+		displayText = "You Scored " + displayScore;	
+		
+		// setTimeout(() => {
+		// 	losing = false;
+		// }, 1000);
+	// }, 1000);
+	// var displayScore = score;
+	// setTimeout(function() { 
+	// 	clearInterval(updateInterval);
+	// 	var interval = setInterval(function() {
+	// 		canvas.fillStyle="red";
+	// 		canvas.fillText("You Scored " + displayScore, cx,cy);
+	// 	}, 1000/60);
+	// 	setTimeout(function() {
+	// 		clearInterval(interval);
+	// 		updateInterval = setInterval(update, 1000/60);
+	// 	}, 1000);
+	// }, 100);
+	
+}
+
+numBalls=3;
+draw();
+
+function click() {
+	if(!losing)return;
+	timer=0;	
+	losing = false;
 	score=0;
+	roundGrabs = 1;
+	grabbable = 1;
 	balls.splice(0,balls.length);
 	balls.length=0;
 	grabbed=null;
 	numBalls=3;
 }
 
-numBalls=3;
-draw();
+window.addEventListener('mousedown', click);
+window.addEventListener('touchstart', click);
+window.addEventListener('keydown', click);
 </script>
