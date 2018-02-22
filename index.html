@@ -12,14 +12,20 @@ if(window.DeviceMotionEvent){
   console.log("DeviceMotionEvent is not supported");
 }
 
+var avx = 0;
+var avz = 0;
 
 function motion(event){
 
 	if(event.acceleration.x) {
-		tangle += (event.acceleration.x)/10;
+		avx += event.acceleration.x;
+		// tangle += (event.acceleration.x)/10;
+		tangle += avx;
 	}
 	if(event.acceleration.z) {
-		tangle2+= (event.acceleration.z)/10;
+		avz += event.acceleration.z;
+		// tangle2+= (event.acceleration.z)/10;
+		tangle2 += avz;
 	}
 	// if(event.accelerationIncludingGravity.x) {
 	// 	tangle += (event.accelerationIncludingGravity.x-tangle)/10;
