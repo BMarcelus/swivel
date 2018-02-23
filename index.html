@@ -1,10 +1,19 @@
 <style>
-	canvas {
+	#gc {
 		display: block;
 		margin: auto;
 	}
+	#canvas-container {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
 </style>
-<canvas ></canvas>
+<div id="canvas-container">
+<canvas id="gc"></canvas>
+</div>
 <script type="text/javascript">
 if(window.DeviceMotionEvent){
   window.addEventListener("devicemotion", motion, false);
@@ -12,27 +21,45 @@ if(window.DeviceMotionEvent){
   console.log("DeviceMotionEvent is not supported");
 }
 
-var avx = 0;
-var avz = 0;
-
+var accel = {};
 function motion(event){
 
-	if(event.acceleration.x) {
-		avx += event.acceleration.x;
-		// tangle += (event.acceleration.x)/10;
-		tangle += avx;
-	}
-	if(event.acceleration.z) {
-		avz += event.acceleration.z;
-		// tangle2+= (event.acceleration.z)/10;
-		tangle2 += avz;
-	}
+	// if(event.acceleration.x) {
+	// 	tangle += (event.acceleration.x)/5;
+	// }
+	// if(event.acceleration.z) {
+	// 	tangle2 += (event.acceleration.z)/5;
+	// }
+	var acc = event.accelerationIncludingGravity;
+	if(!acc)return;
+	var ac2 = event.acceleration;
+	if(!ac2)return;
+	acc.x -= ac2.x;
+	acc.y -= ac2.y;
+	acc.z -= ac2.z;	
+	var mag = Math.sqrt(acc.x*acc.x+acc.y*acc.y+acc.z*acc.z);
+	var norm = {
+		x: acc.x/mag * Math.PI*2 - Math.PI/2,
+		y: acc.y/mag * Math.PI*2,
+		z: acc.z/mag * Math.PI*2,
+	};
+	tangle += (norm.x - tangle) / 10;
+	var yz = -norm.y + norm.z;
+	// if(Math.abs(norm.z)>8) yz = -norm.y;
+	tangle2 += (yz - tangle2) / 10;
+	// tangle += (acc.x - tangle) /10;
+	// var angle = Math.atan2(acc.y, acc.z);
+	// tangle2 += (angle - tangle2)/10;
+	// tangle2 += (-acc.y - tangle2) / 10;
 	// if(event.accelerationIncludingGravity.x) {
 	// 	tangle += (event.accelerationIncludingGravity.x-tangle)/10;
 	// }
-	// if(event.accelerationIncludingGravity.z) {
-	// 	tangle2+= (event.accelerationIncludingGravity.z-tangle2)/10;
+	// if(event.accelerationIncludingGravity.y) {
+	// 	tangle2+= (-event.accelerationIncludingGravity.y-tangle2)/10;
 	// }
+	accel.x = event.accelerationIncludingGravity.x;
+	accel.y = event.accelerationIncludingGravity.y;
+	accel.z = event.accelerationIncludingGravity.z;
 }
 const CE = document.querySelector('canvas');
 var size = Math.min(window.innerWidth, window.innerHeight)-10;
@@ -231,6 +258,12 @@ function draw(){
 		canvas.fillText("Game Over", cx, cy-50);
 		canvas.fillText(displayText, cx, cy);
 	}
+	// canvas.fillStyle="white";
+	// if(accel.x) {
+	// 	canvas.fillText(accel.x.toFixed(2), 200,50);
+	// 	canvas.fillText(accel.y.toFixed(2), 200,100);
+	// 	canvas.fillText(accel.z.toFixed(2), 200,150);
+	// }
 }
 function particleSplode(x,y){
 	for(let i=0;i<10;i++){
