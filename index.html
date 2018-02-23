@@ -34,6 +34,7 @@ function motion(event){
 	if(!acc)return;
 	var ac2 = event.acceleration;
 	if(!ac2)return;
+	if(!acc.x) return;
 	acc.x -= ac2.x;
 	acc.y -= ac2.y;
 	acc.z -= ac2.z;	
