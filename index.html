@@ -183,7 +183,7 @@ function draw(){
 		drawArrow();
 	}
 	canvas.fillStyle="#fff";
-	canvas.strokeStyle="#d00";
+	canvas.strokeStyle="#555";
 	canvas.lineWidth=3;
 	for(let i=0;i<balls.length;i++){
 		const b = balls[i];
@@ -193,21 +193,24 @@ function draw(){
 		// else if(i==3)canvas.fillStyle = "#900";
 		// const a = 1-i/balls.length;
 		// canvas.globalAlpha = Math.max(.5,a);
-		canvas.beginPath();
-		canvas.arc(b.x,b.y,b.r, 0,2*Math.PI);
+		
 		// canvas.rect(b.x-b.r,b.y-b.r, b.r*2, b.r*2);
 		if(i>buffer&&i>balls.length-buffer-1){
 			// canvas.strokeStyle="#d00";
+			canvas.beginPath();
+			canvas.arc(b.x,b.y,b.r, 0,2*Math.PI);
 			canvas.stroke();
 			continue;
 		}
+		canvas.beginPath();
+		canvas.arc(b.x,b.y,b.r, 0,2*Math.PI);
 		canvas.fill();
 		if(i<grabbable&&!grabbed){
 			canvas.beginPath();
 			canvas.strokeStyle="#fff";
 			canvas.arc(b.x,b.y,b.r*1.4+Math.cos(frameCount*Math.PI/40)/2, 0,2*Math.PI);
 			canvas.stroke();
-			canvas.strokeStyle="#d00";
+			canvas.strokeStyle="#555";
 		}
 		// canvas.fillText((i+1), b.x,b.y+10, 20, 20);
 	};
@@ -231,22 +234,19 @@ function draw(){
 
 	if(losing)canvas.fillStyle="red";
 	else canvas.fillStyle="#fff";
-	canvas.beginPath();
 	for(let i=0;i<particles.length;i++){
+		canvas.beginPath();		
 		const p = particles[i];
-		p.x+=p.vx;
-		p.y+=p.vy;
-		p.vy+=.1;
+		if(p.c)canvas.fillStyle=p.c;
+		p.update();		
 		canvas.moveTo(p.x,p.y);
-		const r = Math.max(p.r, 5);
-		canvas.arc(p.x,p.y,r,0,Math.PI*2);
-		p.r-=1;
-		if(p.r<=0){
+		canvas.arc(p.x,p.y,p.r,0,Math.PI*2);
+		if(p.shouldDelete){
 			particles.splice(i,1);
 			i--;
 		}
+		canvas.fill();
 	}
-	canvas.fill();
 
 	// canvas.fillStyle="#0ff";
 	// canvas.beginPath();
@@ -266,10 +266,36 @@ function draw(){
 	// 	canvas.fillText(accel.z.toFixed(2), 200,150);
 	// }
 }
-function particleSplode(x,y){
+function dotTransitionParticles(x,y,c) {
+	// for(let i=0;i<10;i++){
+	// 	particles.push({
+	// 		x,y, vx: (.5-Math.random())*3, vy: (.5-Math.random())*3-1, r:12+Math.random()*8,c:c,
+	// 	})
+	// }
+	particles.push({
+		x:x,y:y,vx:0,vy:-.5,r:15,c:c,life:15,
+		update:function() {
+			this.life--;
+			this.r *= .8;
+			if(this.life<=0)this.shouldDelete=true;			
+		},
+	});
+}
+function splodeUpdate() {
+		this.x+=this.vx;
+		this.y+=this.vy;
+		this.vy+=.1;
+		this.life-=1;
+		this.r = Math.max(this.life, 5);
+		if(this.life<=0)this.shouldDelete=true;
+}
+function particleSplode(x,y,c){
 	for(let i=0;i<10;i++){
+		var life = 20+Math.random()*10;
 		particles.push({
-			x,y, vx: (.5-Math.random())*4, vy: (.5-Math.random())*4-1, r:20+Math.random()*10,
+			x,y, vx: (.5-Math.random())*4, vy: (.5-Math.random())*4-1, r:life,
+			c:c, life:life,
+			update: splodeUpdate,
 		})
 	}
 }
@@ -299,13 +325,13 @@ function update(){
 		if(i>buffer&&i>balls.length-buffer-1)break;
 		const b=balls[i];
 		if(Math.abs(b.x-px)<b.r&&Math.abs(b.y-py)<b.r){
-			if(!grabbed||i>=grabbable)
-				particleSplode(px,py);
+			if(!grabbed&&i<grabbable)
+				particleSplode(px,py,"#fff");
 			if(score==0)score=1;
 			grabbed=b;
 			if(i>=grabbable){
 				lose();
-				particleSplode(px,py);
+				particleSplode(px,py,"#f00");
 			}
 		}
 	};
@@ -317,16 +343,22 @@ function update(){
 			balls[0].r++;
 			grabbable--;
 			timer -= timer/10;
+			var bufferBall = balls[balls.length-buffer];
+			dotTransitionParticles(bufferBall.x,bufferBall.y,"#000");
 			if(grabbable<=0){
-				roundGrabs = Math.floor(score/10) % 10 + 1;
+				roundGrabs = Math.min(Math.ceil(score/10), 10);
+				for(var i = 0;i<roundGrabs; i++) {
+					var b = balls[i];
+					// dotTransitionParticles(b.x,b.y,"#f00");
+					particleSplode(b.x,b.y,"#fff");
+				}
 				grabbable=roundGrabs;
 				timer=0;
-
 				if(score%2==0&&balls.length<maxBalls){
 					numBalls++;
 				}
 			}
-			particleSplode(px,py);
+			particleSplode(px,py,"#fff");
 			// balls.forEach(function(e){
 			// 	e.r+=-CE.width/50/20;
 			// })
@@ -437,7 +469,7 @@ setInterval(function() {
 	timer++;
 	if(timer>=timet){
 		lose();
-		particleSplode(cx,cy);
+		particleSplode(cx,cy,"#f00");
 	}
 	// draw();
 	// drawTimer(timer, timet);
