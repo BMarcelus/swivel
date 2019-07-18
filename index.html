@@ -44,10 +44,10 @@ function motion(event){
 		y: acc.y/mag * Math.PI*2,
 		z: acc.z/mag * Math.PI*2,
 	};
-	tangle += (norm.x - tangle) / 10;
+	tangle += (norm.x - tangle) / 7;
 	var yz = -norm.y + norm.z;
 	// if(Math.abs(norm.z)>8) yz = -norm.y;
-	tangle2 += (yz - tangle2) / 10;
+	tangle2 += (yz - tangle2) / 5;
 	// tangle += (acc.x - tangle) /10;
 	// var angle = Math.atan2(acc.y, acc.z);
 	// tangle2 += (angle - tangle2)/10;
@@ -310,8 +310,8 @@ function update(){
 	// }else
 	if(!losing)
 	{
-		angle += (tangle-angle)/5;
-		angle2+= (tangle2-angle2)/5;
+		angle += (tangle-angle)/3;
+		angle2+= (tangle2-angle2)/3;
 	}
 	const r=pr;
 	x1 = cx+r*Math.cos(angle);
